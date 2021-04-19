@@ -10,10 +10,10 @@
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^8.12",
-        "laravel/sanctum": "^2.9",
         "laravel/telescope": "^4.4",
         "laravel/tinker": "^2.5",
         "predis/predis": "^1.1",
+        "tymon/jwt-auth": "^1.0",
         "webpatser/laravel-uuid": "^3.0"
     },
     "require-dev": {
@@ -32,8 +32,13 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "Modules\\": "modules/"
-        }
+            "Modules\\": "modules/",
+            "Globals\\": "globals/",
+            "Notifications\\": "notifications/"
+        },
+        "files": [
+            "globals/Helpers/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'Homer'),
 
     /*
     |--------------------------------------------------------------------------
@@ -67,7 +67,7 @@ return [
     |
     */
 
-    'timezone' => 'Africa/Lagos',
+    'timezone' => 'UTC',
 
     /*
     |--------------------------------------------------------------------------
@@ -176,11 +176,6 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\TelescopeServiceProvider::class,
 
-        /*
-         * Route providers for modules
-         * */
-        Modules\Peer\Providers\PeerServiceProvider::class,
-        Modules\Peer\Providers\RouteServiceProvider::class,
     ],
 
     /*

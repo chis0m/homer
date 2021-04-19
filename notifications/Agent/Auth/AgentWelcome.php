@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Notifications\General;
+namespace Notifications\Agent\Auth;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class UserWelcome extends Notification implements ShouldQueue
+class AgentWelcome extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -36,9 +36,9 @@ class UserWelcome extends Notification implements ShouldQueue
      * Get the mail representation of the notification.
      *
      * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @return MailMessage
      */
-    public function toMail($notifiable)
+    public function toMail($notifiable): MailMessage
     {
         $subject = 'Welcome';
         $message = 'We are happy to have you at homer';
@@ -57,7 +57,7 @@ class UserWelcome extends Notification implements ShouldQueue
      * @param  mixed  $notifiable
      * @return array
      */
-    public function toArray($notifiable)
+    public function toArray($notifiable): array
     {
         return [
             //
