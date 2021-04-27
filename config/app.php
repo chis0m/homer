@@ -173,8 +173,15 @@ return [
         App\Providers\AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
+        App\Providers\HorizonServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\TelescopeServiceProvider::class,
+
+        //Custom
+        Modules\Peer\Providers\PeerServiceProvider::class,
+        Modules\Peer\Providers\RouteServiceProvider::class,
+        Modules\Property\Providers\PropertyServiceProvider::class,
+        Modules\Property\Providers\RouteServiceProvider::class,
 
     ],
 

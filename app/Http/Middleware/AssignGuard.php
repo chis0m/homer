@@ -19,7 +19,7 @@ class AssignGuard
      * @param null $guard
      * @return mixed
      */
-    public function handle(Request $request, Closure $next, $guard = null)
+    public function handle(Request $request, Closure $next, $guard = null): mixed
     {
         if ($guard) {
             auth()->shouldUse($guard);

@@ -1,0 +1,133 @@
+version: '3'
+
+networks:
+  cl_net:
+
+services:
+  webserver:
+    image: cpl-nginx-image
+    build:
+      context: .
+      dockerfile: docker/nginx.dockerfile
+    container_name: cpl-nginx
+    restart: unless-stopped
+    ports:
+      - "8111:80"
+    volumes:
+      - ./:/var/www/html:delegated
+    depends_on:
+      - mysql
+      - app
+      - redis
+#      - supervisor
+      - cron
+    networks:
+      - cl_net
+
+  mysql:
+    image: mysql:8
+    container_name: cpl-mysql
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "13306:3306"
+    environment:
+#      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+#      MYSQL_DATABASE: ${DB_DATABASE}
+#      MYSQL_PASSWORD: ${DB_PASSWORD}
+#      MYSQL_USER:  ${DB_USERNAME}
+      MYSQL_ROOT_PASSWORD: homer
+      MYSQL_DATABASE: homer
+      MYSQL_PASSWORD: homer
+      MYSQL_USER:  homer
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./mysql:/var/lib/mysql
+    networks:
+      - cl_net
+
+  app:
+    image: cpl-app-image
+    build:
+      context: .
+      dockerfile: docker/app.dockerfile
+    container_name: cpl-app
+    volumes:
+      - ./:/var/www/html:delegated
+    networks:
+      - cl_net
+
+  supervisor:
+    image: cpl-supervisor-image
+    build:
+      context: .
+      dockerfile: docker/supervisor.dockerfile
+    container_name: cpl-supervisor
+    depends_on:
+      - app
+      - mysql
+    environment:
+      APP_ENV: ${APP_ENV}
+      CONTAINER_ROLE: scheduler
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION}
+      CACHE_DRIVER: ${CACHE_DRIVER}
+      SESSION_DRIVER: ${SESSION_DRIVER}
+      REDIS_HOST: ${REDIS_HOST}
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - cl_net
+
+  composer:
+    build:
+      context: .
+      dockerfile: docker/composer.dockerfile
+    container_name: composer
+    volumes:
+      - ./:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - app
+    user: laravel
+    entrypoint: ['composer', '--ignore-platform-reqs']
+    networks:
+      - cl_net
+
+
+  artisan:
+    build:
+      context: .
+      dockerfile: docker/app.dockerfile
+    image: cpl-artisan-image
+    container_name: cpl-artisan
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - app
+      - mysql
+    user: laravel
+    working_dir: /var/www/html
+    entrypoint: ['php', '/var/www/html/artisan']
+    networks:
+      - cl_net
+
+  cron:
+    image: cpl-cron-image
+    build:
+      context: .
+      dockerfile: docker/cron.dockerfile
+    container_name: cpl-cron
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - cl_net
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    networks:
+      - cl_net

@@ -94,9 +94,6 @@ class Handler extends ExceptionHandler
                 return $this->error(null, 'UNAUTHENTICATED, TOKEN_INVALID', 401);
             }
 
-//            if ($preException instanceof \Tymon\JWTAuth\Exceptions\TokenBlacklistedException) {
-//                return $this->error(null, 'UNAUTHENTICATED, TOKEN_BLACKLISTED', 401);
-//            }
             if ($e->getMessage() === 'Token not provided') {
                 return $this->error(null, 'UNAUTHENTICATED, TOKEN_NOT_PROVIDED', 401);
             }

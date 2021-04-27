@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Property\Models\Property;
 use Webpatser\Uuid\Uuid;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -41,10 +44,17 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  * @mixin \Eloquent
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection|\Illuminate\Notifications\DatabaseNotification[] $notifications
  * @property-read int|null $notifications_count
+ * @property-read \Illuminate\Database\Eloquent\Collection|Property[] $properties
+ * @property-read int|null $properties_count
+ * @method static \Illuminate\Database\Query\Builder|Agent onlyTrashed()
+ * @method static \Illuminate\Database\Query\Builder|Agent withTrashed()
+ * @method static \Illuminate\Database\Query\Builder|Agent withoutTrashed()
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Agent whereDeletedAt($value)
  */
 class Agent extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * @var string[]
@@ -72,7 +82,16 @@ class Agent extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
     ];
 
-        /**
+
+    /**
+     * @param $value
+     */
+    public function setEmailAttribute($value): void
+    {
+        $this->attributes['email'] = strtolower($value);
+    }
+
+    /**
      *  Setup model event hooks
      */
     public static function boot() :void
@@ -94,9 +113,17 @@ class Agent extends Authenticatable implements JWTSubject
     }
 
     /**
+     * @return MorphMany
+     */
+    public function properties(): MorphMany
+    {
+        return $this->morphMany(Property::class, 'propertable');
+    }
+
+    /**
      * @return mixed
      */
-    public function getJWTIdentifier()
+    public function getJWTIdentifier(): mixed
     {
         return $this->getKey();
     }
