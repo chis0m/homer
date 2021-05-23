@@ -31,7 +31,7 @@ class CreatePropertiesTable extends Migration
             $table->decimal('price', 15);
             $table->longText('description')->nullable();
             $table->string('status')->default('active');
-            $table->integer('notification_count')->default(0);
+            $table->integer('notification_time_laps')->default(0);
             $table->timestamp('expired_at')->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();

@@ -13,23 +13,31 @@ class PropertyCronService {
         Property::agentPropertyThatAre(Enum::ACTIVE)->chunkById(100, function ($chunk) {
             $setNotificationCount = Configuration::getPropertyExpiryCount();
             $expiryNotificationTimeInterval = Configuration::getPropertyExpiryTimeInterval();
+            $totalNotificationTime = $setNotificationCount * $expiryNotificationTimeInterval;
             foreach ($chunk as $property) {
-                $agent = $property->propertable;
                 $deletedAt = Carbon::parse($property['expired_at']);
-                $notificationCount = $property['notification_count'];
-                if ($deletedAt->gt(now())) {
+                if ($deletedAt->lt(now())) {
                     continue;
                 }
-                if($notificationCount >= $setNotificationCount) {
+                $agent = $property->propertable;
+                $notificationTimeLaps = $property['notification_time_laps'];
+                if(($notificationTimeLaps >= $totalNotificationTime) && ($property->status === Enum::ACTIVE)) {
                     $property->update(['status' => Enum::INACTIVE]);
-                    sendMail($agent, 'property.agent', 'ListingDeactivated');//mail will always be sent here so ajdust
+                    sendMail($agent, 'property.agent', 'ListingDeactivated');
                     continue;
                 }
-                sendMail($agent, 'property.agent', 'ExpiredListing');
-                $property['notification_count'] += 1;
-                $property->save();
-
-
+                if ($notificationTimeLaps < $totalNotificationTime && ($property->status === Enum::ACTIVE)) {
+                    sendMail($agent, 'property.agent', 'ExpiredListing');
+                    $property['notification_time_laps'] += $expiryNotificationTimeInterval;
+                    $property->save();
+                }
+                if($notificationTimeLaps < $totalNotificationTime && ($property->status === Enum::INACTIVE)) {
+                    $property->update(['status' => Enum::ACTIVE]);
+                    sendMail($agent, 'property.agent', 'ExpiredListing');
+                    $property['notification_time_laps'] += $expiryNotificationTimeInterval;
+                    $property->save();
+                }
+                continue;
             }
         });
     }

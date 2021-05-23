@@ -3,6 +3,7 @@
 namespace Modules\Property\Http\Controllers;
 
 use App\Http\Controllers\API\Controller;
+use Globals\Classes\Enum;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Request;
@@ -15,26 +16,6 @@ use Globals\Traits\TResponder;
 class RegistrationController extends Controller
 {
     use TResponder;
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -79,26 +60,36 @@ class RegistrationController extends Controller
         return $this->success($property, __('property.created'), Response::HTTP_CREATED);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
 
     /**
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function edit($id)
+    public function enable($id) :JsonResponse
     {
-        //
+        $property = Property::find($id);
+        $property->update([
+            'status' => Enum::ACTIVE,
+            'expired_at' =>  now()->addDays(2)
+        ]);
+        return $this->success($property, __('property.enabled'), Response::HTTP_ACCEPTED);
+    }
+
+        /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return JsonResponse
+     */
+    public function disable($id) :JsonResponse
+    {
+        $property = Property::find($id);
+        $property->update([
+            'status' => Enum::INACTIVE
+        ]);
+        return $this->success($property, __('property.disabled'), Response::HTTP_ACCEPTED);
     }
 
     /**

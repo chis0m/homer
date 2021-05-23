@@ -13,7 +13,9 @@ return [
     |
     */
     'created' => 'Your property has been added.',
-    'updated' => 'Your property was updated successfully.',
+    'enabled' => 'Your property has been enabled.',
     'deleted' => 'Your property was deleted successfully',
+    'disabled' => 'Your property has been disabled.',
+    'updated' => 'Your property was updated successfully.',
 
 ];
