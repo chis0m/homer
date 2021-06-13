@@ -2,7 +2,7 @@
 
 namespace App\Exceptions;
 
-use App\Traits\TResponder;
+use Globals\Traits\TResponder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -10,6 +10,7 @@ use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -43,7 +44,7 @@ class Handler extends ExceptionHandler
      *
      * @return void
      */
-    public function register()
+    public function register() :void
     {
         $this->reportable(function (Throwable $e) {
             //
@@ -62,7 +63,11 @@ class Handler extends ExceptionHandler
             // If Model Not found (e.g: not existing user error)
         if ($e instanceof ModelNotFoundException) {
             $model = ucwords(strtolower(class_basename($e->getModel())));
-            return $this->error(null, "Does not exist any instance of {$model} with the given id", Response::HTTP_NOT_FOUND);
+            return $this->error(
+                null,
+                "Does not exist any instance of {$model} with the given id",
+                Response::HTTP_NOT_FOUND
+            );
         }
 
         // Handling the Unauthorized exception
@@ -79,10 +84,26 @@ class Handler extends ExceptionHandler
             return $this->error($errors, 'invalid credentials', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        if ($e instanceof UnauthorizedHttpException) {
+            $preException = $e->getPrevious();
+            if ($preException instanceof \Tymon\JWTAuth\Exceptions\TokenExpiredException) {
+                return $this->error(null, 'UNAUTHENTICATED, TOKEN_EXPIRED', 401);
+            }
+
+            if ($preException instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException) {
+                return $this->error(null, 'UNAUTHENTICATED, TOKEN_INVALID', 401);
+            }
+
+            if ($e->getMessage() === 'Token not provided') {
+                return $this->error(null, 'UNAUTHENTICATED, TOKEN_NOT_PROVIDED', 401);
+            }
+        }
+
         if (env('APP_DEBUG', false)) {
             return parent::render($request, $e);
         }
 
+        // @phpstan-ignore-next-line
         return $this->fatalError($e);
     }
 }

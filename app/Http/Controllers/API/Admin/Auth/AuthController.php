@@ -1,19 +1,20 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API\Admin\Auth;
 
+use App\Http\Controllers\API\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Auth\Register;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\Auth\Login;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
-use App\Traits\TResponder;
-use App\Models\User;
+use Globals\Traits\TResponder;
+use App\Models\Admin;
 
 /**
  * Class AuthController
- * @package App\Http\Controllers
+ * @package App\Http\Controllers\API\Admin\Auth
  */
 class AuthController extends Controller
 {
@@ -25,23 +26,19 @@ class AuthController extends Controller
      */
     public function register(Register $request): JsonResponse
     {
+
         $credentials = [
             'first_name' => $request['first_name'],
             'last_name' => $request['last_name'],
             'email' => $request['email'],
             'password' => Hash::make($request['password'])
         ];
-        $user = User::create($credentials);
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        $data = [
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
-        ];
-
-        return $this->success($data, 'Successful', Response::HTTP_CREATED);
+        $admin = Admin::create($credentials);
+        // @phpstan-ignore-next-line
+        $token = auth()->login($admin);
+        return $this->respondWithToken($token);
     }
+
 
     /**
      * @param Login $request
@@ -49,20 +46,19 @@ class AuthController extends Controller
      */
     public function login(Login $request): JsonResponse
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (! $token = auth()->attempt($request->only('email', 'password'))) {
             return $this->error(null, 'Invalid credentials', Response::HTTP_PRECONDITION_FAILED);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
+        return $this->respondWithToken($token, Response::HTTP_OK);
+    }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
 
-        $data = [
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
-        ];
-
-        return $this->success($data, 'Successful', Response::HTTP_CREATED);
+    /**
+     * @return JsonResponse
+     */
+    public function me(): JsonResponse
+    {
+        return $this->success(auth()->user());
     }
 }

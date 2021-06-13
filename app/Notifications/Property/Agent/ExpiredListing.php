@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Notifications\General;
+namespace App\Notifications\Property\Agent;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class UserWelcome extends Notification implements ShouldQueue
+class ExpiredListing extends Notification
 {
     use Queueable;
 
@@ -40,13 +40,22 @@ class UserWelcome extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $subject = 'Welcome';
-        $message = 'We are happy to have you at homer';
+        $subject = 'Listing Expired';
+        $message = "We want to bring to your notice that your listing has been expired.
+                    Please, do login to your dashboard and persist your listing if still valid.
+                    The system expects to be perform this action within the next 24 hours to avoid this property being
+                    delisted by our bot.";
+
+        $endMessage = 'Thank you for your compliance';
+
         return (new MailMessage)->markdown(
             'emails.general.template',
             [
                 'message' => $message,
-                'user' => $notifiable
+                'end_message' => $endMessage,
+                'user' => $notifiable,
+                'button_text' => 'LOGIN',
+                'url' =>  config('api.app_url') . '/login',
             ]
         )->subject($subject);
     }
